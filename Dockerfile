@@ -1,6 +1,3 @@
-# ─────────────────────────────────────────────────────────────────────────────
-# Stage 1 – Build the React frontend
-# ─────────────────────────────────────────────────────────────────────────────
 FROM node:22-alpine AS frontend-builder
 WORKDIR /app/frontend
 
@@ -11,20 +8,12 @@ COPY frontend/ ./
 RUN npm run build
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Stage 2 – Build the Rust binary
-# rust:alpine uses musl by default → fully static binary, no glibc needed.
-# ─────────────────────────────────────────────────────────────────────────────
-FROM rust:1-alpine3.19 AS rust-builder
+FROM rust:1-alpine AS rust-builder
 
-# musl-dev supplies the C toolchain required by bundled SQLite (libsqlite3-sys)
 RUN apk add --no-cache musl-dev
 
 WORKDIR /app
 
-# ── Dependency-caching layer ──────────────────────────────────────────────────
-# Build a stub binary so all crate dependencies compile into a cached layer.
-# Only invalidated when Cargo.toml / Cargo.lock change.
 COPY Cargo.toml Cargo.lock* ./
 RUN mkdir -p src migrations \
     && printf 'fn main(){}' > src/main.rs \
@@ -32,21 +21,14 @@ RUN mkdir -p src migrations \
     && cargo build --release \
     && rm -rf src target/release/deps/hookshot* target/release/hookshot*
 
-# ── Real build ────────────────────────────────────────────────────────────────
 COPY src/        ./src/
 COPY migrations/ ./migrations/
 RUN cargo build --release \
     && strip target/release/hookshot
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Stage 3 – Minimal Alpine runtime (~20 MB total image)
-# ─────────────────────────────────────────────────────────────────────────────
-FROM alpine:3.19
+FROM alpine:3.21
 
-# ca-certificates → HTTPS calls to Discord
-# tzdata          → correct timezone in log timestamps
-# su-exec         → drop privileges in entrypoint (Alpine's gosu equivalent)
 RUN apk add --no-cache ca-certificates tzdata su-exec \
     && addgroup -S webhook \
     && adduser  -S -G webhook -H -s /sbin/nologin webhook
