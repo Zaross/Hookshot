@@ -1,0 +1,14 @@
+<svg width="64" height="64" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="120" height="120" rx="26" fill="#0D1117"/>
+  <rect x="1.5" y="1.5" width="117" height="117" rx="24.5" fill="none" stroke="rgba(34,232,220,0.18)" stroke-width="1.5"/>
+  <!-- H left vertical bar -->
+  <rect x="22" y="28" width="10" height="58" rx="4" fill="#22E8DC"/>
+  <!-- H crossbar (left half only, connects to hook) -->
+  <rect x="22" y="51" width="36" height="10" rx="4" fill="#22E8DC"/>
+  <!-- Hook: right half of H — only top portion, creating the hook shape -->
+  <path d="M58 28 L58 56 L88 56 L88 28" stroke="#22E8DC" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Arrow shaft from hook bottom-right -->
+  <line x1="80" y1="72" x2="95" y2="57" stroke="#22E8DC" stroke-width="7" stroke-linecap="round"/>
+  <!-- Arrowhead -->
+  <path d="M88 56 L96 56 L96 64" stroke="#22E8DC" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>

@@ -1,0 +1,34 @@
+name: hookshot
+
+services:
+  hookshot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: hookshot:latest
+    container_name: hookshot
+    hostname: hookshot
+    restart: unless-stopped
+    ports:
+      # Override HOST_PORT in .env to expose on a different host port
+      - "${HOST_PORT:-8080}:8080"
+    volumes:
+      # Bind-mount so the database survives container recreation
+      - ./data:/app/data
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DATABASE_URL: sqlite:/app/data/app.db
+      PORT: "8080"
+      FRONTEND_DIR: /app/frontend/dist
+      RUST_LOG: ${RUST_LOG:-hookshot=info,tower_http=info}
+    healthcheck:
+      test: ["CMD", "wget", "-qO", "/dev/null", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    labels:
+      com.hookshot.service: "hookshot"
+      com.hookshot.version: "1.0"

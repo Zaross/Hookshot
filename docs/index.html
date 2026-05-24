@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hookshot — Documentation</title>
+  <meta name="description" content="Self-hosted GitHub & GitLab to Discord webhook bridge. Beautifully customizable embeds, multi-user admin UI, TOTP 2FA, Prometheus metrics, and more." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪝</text></svg>" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --surface2: #21262d;
+      --border: #30363d;
+      --accent: #58a6ff;
+      --accent2: #7c3aed;
+      --accent-glow: rgba(88,166,255,0.15);
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+      --text-dim: #6e7681;
+      --green: #3fb950;
+      --orange: #f0883e;
+      --red: #f85149;
+      --purple: #bc8cff;
+      --yellow: #e3b341;
+      --code-bg: #161b22;
+      --radius: 8px;
+      --shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      font-size: 16px;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(13,17,23,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+    }
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .nav-brand .icon { font-size: 1.4rem; }
+    .nav-links {
+      display: flex;
+      gap: 1.5rem;
+      list-style: none;
+    }
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--text); }
+    .nav-cta {
+      background: var(--accent);
+      color: #000 !important;
+      padding: 0.35rem 1rem;
+      border-radius: 6px;
+      font-weight: 600;
+    }
+    .nav-cta:hover { opacity: 0.85; }
+
+    /* ── HERO ── */
+    .hero {
+      text-align: center;
+      padding: 7rem 2rem 5rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(88,166,255,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 0.3rem 1rem;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-bottom: 2rem;
+    }
+    .hero-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+    .hero h1 {
+      font-size: clamp(2.5rem, 6vw, 4rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      margin-bottom: 1.2rem;
+    }
+    .hero h1 .grad {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--purple) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      color: var(--text-muted);
+      font-size: 1.2rem;
+      max-width: 600px;
+      margin: 0 auto 2.5rem;
+    }
+    .hero-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.7rem 1.6rem;
+      border-radius: var(--radius);
+      font-weight: 600;
+      font-size: 0.95rem;
+      text-decoration: none;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: none;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #000;
+    }
+    .btn-primary:hover { background: #79b8ff; }
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { background: var(--surface2); border-color: var(--accent); }
+
+    /* ── SECTION ── */
+    section {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 5rem 2rem;
+    }
+    section + section { padding-top: 0; }
+    .section-label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.6rem;
+    }
+    h2 {
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.8rem;
+    }
+    h3 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    .lead {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      margin-bottom: 3rem;
+      max-width: 650px;
+    }
+
+    /* ── FEATURE GRID ── */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.2rem;
+    }
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .feature-card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent-glow), var(--shadow);
+    }
+    .feature-icon {
+      font-size: 1.6rem;
+      margin-bottom: 0.8rem;
+    }
+    .feature-card h3 { font-size: 1rem; }
+    .feature-card p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-top: 0.4rem;
+    }
+
+    /* ── CODE ── */
+    pre, code {
+      font-family: 'SF Mono', 'Cascadia Code', Consolas, 'Liberation Mono', monospace;
+      font-size: 0.88rem;
+    }
+    code {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 0.1em 0.4em;
+      border-radius: 4px;
+      color: var(--orange);
+    }
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.4rem 1.6rem;
+      overflow-x: auto;
+      line-height: 1.6;
+    }
+    pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      color: var(--text);
+    }
+    .code-label {
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+
+    /* ── TABS ── */
+    .tabs { margin-bottom: 2rem; }
+    .tab-list {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 1.5rem;
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      padding: 0.7rem 1.2rem;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    .tab-btn.active {
+      color: var(--text);
+      border-bottom-color: var(--accent);
+    }
+    .tab-btn:hover:not(.active) { color: var(--text); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── TABLE ── */
+    .table-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border); }
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      background: var(--surface2);
+      text-align: left;
+      padding: 0.8rem 1.2rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+    td {
+      padding: 0.75rem 1.2rem;
+      font-size: 0.9rem;
+      border-top: 1px solid var(--border);
+      vertical-align: top;
+    }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+    td code { font-size: 0.82rem; }
+
+    /* ── BADGE ── */
+    .badge {
+      display: inline-block;
+      padding: 0.2em 0.6em;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      font-family: monospace;
+    }
+    .badge-get  { background: rgba(63,185,80,0.2);  color: var(--green);  }
+    .badge-post { background: rgba(88,166,255,0.2); color: var(--accent); }
+    .badge-put  { background: rgba(240,136,62,0.2); color: var(--orange); }
+    .badge-del  { background: rgba(248,81,73,0.2);  color: var(--red);    }
+    .badge-pub  { background: rgba(188,140,255,0.2); color: var(--purple); }
+    .badge-lock { background: rgba(227,179,65,0.2);  color: var(--yellow); }
+    .badge-admin { background: rgba(248,81,73,0.15); color: var(--red); }
+
+    /* ── STEPS ── */
+    .steps { display: flex; flex-direction: column; gap: 1.2rem; }
+    .step {
+      display: flex;
+      gap: 1.2rem;
+      align-items: flex-start;
+    }
+    .step-num {
+      flex-shrink: 0;
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #000;
+      font-weight: 700;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .step-content h4 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.3rem; }
+    .step-content p { font-size: 0.9rem; color: var(--text-muted); }
+
+    /* ── METRICS CARDS ── */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+    .metric-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.2rem;
+    }
+    .metric-name { font-size: 0.8rem; font-family: monospace; color: var(--accent); margin-bottom: 0.3rem; word-break: break-all; }
+    .metric-desc { font-size: 0.85rem; color: var(--text-muted); }
+
+    /* ── CALLOUT ── */
+    .callout {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: var(--radius);
+      padding: 1rem 1.2rem;
+      margin: 1.5rem 0;
+      font-size: 0.92rem;
+      color: var(--text-muted);
+    }
+    .callout strong { color: var(--text); }
+    .callout-warn { border-left-color: var(--yellow); }
+    .callout-green { border-left-color: var(--green); }
+
+    /* ── ENDPOINT LIST ── */
+    .endpoint-group { margin-bottom: 2rem; }
+    .endpoint-group-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 0.8rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .endpoint {
+      display: flex;
+      align-items: baseline;
+      gap: 0.8rem;
+      padding: 0.55rem 0;
+      border-bottom: 1px solid rgba(48,54,61,0.5);
+      flex-wrap: wrap;
+    }
+    .endpoint:last-child { border-bottom: none; }
+    .endpoint-path {
+      font-family: monospace;
+      font-size: 0.9rem;
+      color: var(--text);
+      flex: 1;
+      min-width: 200px;
+    }
+    .endpoint-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    .endpoint-badges { display: flex; gap: 0.3rem; flex-wrap: wrap; }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2.5rem 2rem;
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 0.88rem;
+    }
+    footer a { color: var(--text-muted); text-decoration: none; }
+    footer a:hover { color: var(--text); }
+
+    /* ── UTILS ── */
+    .divider { height: 1px; background: var(--border); max-width: 1100px; margin: 0 auto; }
+    .mt-2 { margin-top: 2rem; }
+    .mt-1 { margin-top: 1rem; }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+    @media (max-width: 700px) {
+      .grid-2 { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+    }
+
+    /* ── ANCHOR HIGHLIGHT ── */
+    :target { scroll-margin-top: 80px; }
+    a.anchor { color: inherit; text-decoration: none; }
+    a.anchor:hover::after { content: ' #'; color: var(--accent); }
+  </style>
+</head>
+<body>
+
+<!-- ──────────── NAV ──────────── -->
+<nav>
+  <a href="#" class="nav-brand">
+    <span class="icon">🪝</span>
+    Hookshot
+  </a>
+  <ul class="nav-links">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#quickstart">Quick Start</a></li>
+    <li><a href="#api">API</a></li>
+    <li><a href="#config">Config</a></li>
+    <li><a href="#monitoring">Monitoring</a></li>
+    <li><a href="https://github.com/your-username/hookshot" class="nav-cta">GitHub →</a></li>
+  </ul>
+</nav>
+
+<!-- ──────────── HERO ──────────── -->
+<div class="hero">
+  <div class="hero-badge">
+    <span class="dot"></span>
+    Self-hosted · Open Source · MIT License
+  </div>
+  <h1>
+    Push events to Discord<br>
+    <span class="grad">without the noise.</span>
+  </h1>
+  <p>
+    Hookshot is a webhook bridge for GitHub &amp; GitLab that delivers fully customizable Discord embeds — with a clean admin UI, automatic retry queuing, and production-grade security.
+  </p>
+  <div class="hero-buttons">
+    <a href="#quickstart" class="btn btn-primary">🚀 Get Started</a>
+    <a href="#api" class="btn btn-secondary">📖 API Reference</a>
+    <a href="https://github.com/your-username/hookshot" class="btn btn-secondary">⭐ GitHub</a>
+  </div>
+</div>
+
+<!-- ──────────── FEATURES ──────────── -->
+<section id="features">
+  <div class="section-label">What you get</div>
+  <h2><a href="#features" class="anchor">Features</a></h2>
+  <p class="lead">Everything you need to bridge your repositories to Discord — nothing you don't.</p>
+
+  <div class="feature-grid">
+    <div class="feature-card">
+      <div class="feature-icon">🔗</div>
+      <h3>GitHub &amp; GitLab</h3>
+      <p>Both platforms work out of the box. HMAC signature verification for GitHub, secret token validation for GitLab — with constant-time comparison.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🎨</div>
+      <h3>Custom Embed Templates</h3>
+      <p>Design your Discord embeds with a live preview builder. Control title, description, color, footer, author, thumbnail, and more via template variables.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔁</div>
+      <h3>Automatic Retry Queue</h3>
+      <p>Discord 429 / 5xx responses trigger exponential backoff retries (30 s → 5 min, up to 5 attempts). Inspect and manage the queue from the admin panel.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔐</div>
+      <h3>TOTP Two-Factor Auth</h3>
+      <p>Protect admin accounts with TOTP (Google Authenticator, Bitwarden, Authy). Includes 8 one-time backup codes for recovery, SHA-256 hashed at rest.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🛡️</div>
+      <h3>Brute-Force Protection</h3>
+      <p>Per-account lockout after 5 failed login attempts. Per-IP rate limiting (20 attempts / 15 min) persisted in SQLite — limits survive server restarts.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <h3>Real-Time Dashboard</h3>
+      <p>Stats and live log feed update instantly via Server-Sent Events. No refresh needed — new webhook events appear with a pulsing Live indicator.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📈</div>
+      <h3>Prometheus Metrics</h3>
+      <p>Scrape <code>/metrics</code> with any Prometheus-compatible collector. Tracks webhook counts by status, queue depth, repositories, and users.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <h3>Settings Cache</h3>
+      <p>API keys are held in an in-memory RwLock cache — zero DB roundtrips per request. Cache is invalidated atomically when settings are updated.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📖</div>
+      <h3>Swagger UI</h3>
+      <p>Every endpoint is documented with utoipa annotations. Browse and try all API endpoints interactively at <code>/api/docs</code>.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🌿</div>
+      <h3>Branch &amp; Keyword Filters</h3>
+      <p>Per-repository allowed branch list and commit keyword filter — silently drop pushes you don't care about. Dependabot is always filtered.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🗃️</div>
+      <h3>SQLite + Auto-Maintenance</h3>
+      <p>Zero-dependency embedded database. Weekly <code>VACUUM + ANALYZE</code> keeps file size minimal and query planner accurate automatically.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📦</div>
+      <h3>~20 MB Docker Image</h3>
+      <p>Statically compiled Rust binary on Alpine Linux. No external runtime dependencies, no JVM, no interpreter.</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ──────────── QUICK START ──────────── -->
+<section id="quickstart">
+  <div class="section-label">Get running in 60 seconds</div>
+  <h2><a href="#quickstart" class="anchor">Quick Start</a></h2>
+  <p class="lead">Three commands and you're live.</p>
+
+  <div class="code-label">Shell</div>
+  <pre><code>git clone https://github.com/your-username/hookshot.git
+cd hookshot
+docker compose up -d</code></pre>
+
+  <div class="callout callout-green mt-2">
+    <strong>Default credentials:</strong> Open <strong>http://localhost:8080</strong> and sign in with <strong>admin / admin123</strong>. You will be prompted to change the password on first login.
+  </div>
+
+  <div class="mt-2">
+    <h3>Connect a Repository</h3>
+    <div class="steps mt-1">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h4>Create a Repository in Hookshot</h4>
+          <p>Go to the admin panel → Repositories → Add. Enter your repo's full name, choose GitHub or GitLab, and paste your Discord webhook URL. Hookshot generates a unique token and secret automatically.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h4>Add the Webhook on GitHub / GitLab</h4>
+          <p>In your repository's webhook settings, set the payload URL to <code>https://your-domain.com/webhook/&lt;token&gt;</code>, set content type to <code>application/json</code>, and enter the secret. Subscribe to <em>push events only</em>.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h4>Push Something</h4>
+          <p>Push a commit. Within seconds a Discord embed appears in your channel. Use the <strong>Test Send</strong> button in Hookshot to fire a test without a real push.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2 mt-2">
+    <div>
+      <h3>GitHub Setup</h3>
+      <ol style="padding-left:1.2rem; color: var(--text-muted); font-size:0.9rem; margin-top:0.5rem;">
+        <li style="margin-bottom:0.4rem">Repository → <strong>Settings → Webhooks → Add webhook</strong></li>
+        <li style="margin-bottom:0.4rem">Payload URL: <code>https://your-domain.com/webhook/&lt;token&gt;</code></li>
+        <li style="margin-bottom:0.4rem">Content type: <code>application/json</code></li>
+        <li style="margin-bottom:0.4rem">Secret: paste from Hookshot repository page</li>
+        <li>Select <strong>Just the push event</strong></li>
+      </ol>
+    </div>
+    <div>
+      <h3>GitLab Setup</h3>
+      <ol style="padding-left:1.2rem; color: var(--text-muted); font-size:0.9rem; margin-top:0.5rem;">
+        <li style="margin-bottom:0.4rem">Project → <strong>Settings → Webhooks</strong></li>
+        <li style="margin-bottom:0.4rem">URL: <code>https://your-domain.com/webhook/&lt;token&gt;</code></li>
+        <li style="margin-bottom:0.4rem">Secret token: paste from Hookshot repository page</li>
+        <li style="margin-bottom:0.4rem">Enable <strong>Push events</strong></li>
+        <li>Click <strong>Add webhook</strong></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ──────────── EMBED VARIABLES ──────────── -->
+<section id="variables">
+  <div class="section-label">Templating</div>
+  <h2><a href="#variables" class="anchor">Embed Variables</a></h2>
+  <p class="lead">Use <code>{{variable}}</code> syntax anywhere in your embed template fields — title, description, footer, author, URLs.</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Variable</th><th>Description</th><th>Example</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>{{repo_name}}</code></td><td>Short repository name</td><td><code>my-app</code></td></tr>
+        <tr><td><code>{{repo_full_name}}</code></td><td>Owner/repo</td><td><code>acme/my-app</code></td></tr>
+        <tr><td><code>{{repo_url}}</code></td><td>Link to repository</td><td><code>https://github.com/acme/my-app</code></td></tr>
+        <tr><td><code>{{pusher_name}}</code></td><td>Username of pusher</td><td><code>octocat</code></td></tr>
+        <tr><td><code>{{pusher_avatar}}</code></td><td>Avatar image URL</td><td><code>https://avatars.githubusercontent.com/…</code></td></tr>
+        <tr><td><code>{{branch}}</code></td><td>Target branch name</td><td><code>main</code></td></tr>
+        <tr><td><code>{{commit_count}}</code></td><td>Number of commits</td><td><code>3</code></td></tr>
+        <tr><td><code>{{all_commits}}</code></td><td>All commits formatted as markdown links</td><td><code>[`abc1234`](url) – feat: add login – octocat</code></td></tr>
+        <tr><td><code>{{added_commits}}</code></td><td>Commits that added files</td><td>Same format as above</td></tr>
+        <tr><td><code>{{modified_commits}}</code></td><td>Commits that modified files</td><td>Same format as above</td></tr>
+        <tr><td><code>{{removed_commits}}</code></td><td>Commits that removed files</td><td>Same format as above</td></tr>
+        <tr><td><code>{{discord_timestamp_R}}</code></td><td>Relative time</td><td><em>2 minutes ago</em></td></tr>
+        <tr><td><code>{{discord_timestamp_F}}</code></td><td>Full date &amp; time</td><td><em>Sunday, 25 May 2025 14:00:00</em></td></tr>
+        <tr><td><code>{{discord_timestamp_D}}</code></td><td>Long date</td><td><em>25 May 2025</em></td></tr>
+        <tr><td><code>{{discord_timestamp_T}}</code></td><td>Time with seconds</td><td><em>14:00:00</em></td></tr>
+        <tr><td><code>{{discord_timestamp_t}}</code></td><td>Short time</td><td><em>14:00</em></td></tr>
+        <tr><td><code>{{discord_timestamp_d}}</code></td><td>Short date</td><td><em>25/05/2025</em></td></tr>
+        <tr><td><code>{{discord_timestamp_f}}</code></td><td>Date and short time</td><td><em>25 May 2025 14:00</em></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ──────────── API REFERENCE ──────────── -->
+<section id="api">
+  <div class="section-label">API Reference</div>
+  <h2><a href="#api" class="anchor">REST API</a></h2>
+  <p class="lead">All endpoints are documented with OpenAPI 3.0 annotations. The interactive Swagger UI is available at <code>/api/docs</code> on your running instance.</p>
+
+  <div class="callout">
+    <strong>Authentication:</strong> Protected endpoints require a <code>Bearer &lt;token&gt;</code> header. Obtain a token via <code>POST /api/auth/login</code>. Admin-only endpoints additionally require the <code>admin</code> role.
+  </div>
+
+  <div class="tabs mt-2">
+    <div class="tab-list">
+      <button class="tab-btn active" onclick="switchTab(event,'auth')">Auth</button>
+      <button class="tab-btn" onclick="switchTab(event,'repos')">Repositories</button>
+      <button class="tab-btn" onclick="switchTab(event,'logs')">Logs</button>
+      <button class="tab-btn" onclick="switchTab(event,'admin')">Admin</button>
+      <button class="tab-btn" onclick="switchTab(event,'system')">System</button>
+    </div>
+
+    <!-- AUTH -->
+    <div class="tab-panel active" id="tab-auth">
+      <div class="endpoint-group">
+        <div class="endpoint-group-title">Authentication</div>
+        <div class="endpoint">
+          <div class="endpoint-badges"><span class="badge badge-post">POST</span><span class="badge badge-pub">public</span></div>
+          <div class="endpoint-path">/api/auth/login</div>
+          <div class="endpoint-desc">Username + password login. Returns a full JWT or a temporary token if 2FA is enabled.</div>
+        </div>
+        <div class="endpoint">
+          <div class="endpoint-badges"><span class="badge badge-post">POST</span><span class="badge badge-pub">public</span></div>
+          <div class="endpoint-path">/api/auth/totp/verify</div>
+          <div class="endpoint-desc">Submit a 6-digit TOTP code after the initial login step.</div>
+        </div>
+        <div class="endpoint">
+          <div class="endpoint-badges"><span class="badge badge-post">POST</span><span class="badge badge-pub">public</span></div>
+          <div class="endpoint-path">/api/auth/totp/use-backup</div>
+          <div class="endpoint-desc">Authenticate using one of the 8 one-time backup codes. Code is consumed on use.</div>
+        </div>
+        <div class="endpoint">
+          <div class="endpoint-badges"><span class="badge badge-get">GET</span><span class="badge badge-lock">auth</span></div>
+          <div class="endpoint-path">/api/auth/me</div>
+          <div class="endpoint-desc">Return the profile of the currently authenticated user.</div>
+        </div>
+        <div class="endpoint">
+          <div class="endpoint-badges"><span class="badge badge-post">POST</span><span class="badge badge-lock">auth</span></div>
+          <div class="endpoint-path">/api/auth/logout</div>
+          <div class="endpoint-desc">Invalidate the current JWT (adds it to the blacklist).</div>
+        </div>
+        <div class="endpoint">
+          <div class="endpoint-badges"><span class="badge badge-post">POST</span><span class="badge badge-lock">auth</span></div>
+          <div class="endpoint-path">/api/auth/totp/setup</div>
+          <div class="endpoint-desc">Generate a TOTP secret and OTP auth URI for QR code display.</div>
+        </div>
+        <div class="endpoint">
+          <div class="endpoint-badges"><span class="badge badge-post">POST</span><span class="badge badge-lock">auth</span></div>
+          <div class="endpoint-path">/api/auth/totp/enable</div>
+          <div class="endpoint-desc">Confirm a TOTP code to activate 2FA. Returns 8 backup codes (shown once).</div>
+        </div>
+        <div class="endpoint">
+          <div class="endpoint-badges"><span class="badge badge-post">POST</span><span class="badge badge-lock">auth</span></div>
+          <div class="endpoint-path">/api/auth/totp/disable</div>
+          <div class="endpoint-desc">Disable 2FA. Requires current password and valid TOTP code.</div>
+        </div>
+        <div class="endpoint">
+          <div class="endpoint-badges"><span class="badge badge-post">POST</span><span class="badge badge-lock">auth</span></div>
+          <div class="endpoint-path">/api/auth/stream-token</div>
+          <div class="endpoint-desc">Issue a 30-second one-time token for authenticating the SSE log stream.</div>
+        </div>
+      </div>
+      <div class="endpoint-group">
+        <div class="endpoint-group-title">Sessions</div>
+        <div class="endpoint">
+          <div class="endpoint-badges"><span class="badge badge-get">GET</span><span class="badge badge-lock">auth</span></div>
+          <div class="endpoint-path">/api/sessions</div>
+          <div class="endpoint-desc">List all active sessions for the current user.</div>
+        </div>
+        <div class="endpoint">
+          <div class="endpoint-badges"><span class="badge badge-del">DELETE</span><span class="badge badge-lock">auth</span></div>
+          <div class="endpoint-path">/api/sessions/{id}</div>
+          <div class="endpoint-desc">Revoke a specific session (blacklists its JWT).</div>
+        </div>
+        <div class="endpoint">
+          <div class="endpoint-badges"><span class="badge badge-post">POST</span><span class="badge badge-lock">auth</span></div>
+          <div class="endpoint-path">/api/sessions/revoke-others</div>
+          <div class="endpoint-desc">Revoke all sessions except the current one.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REPOS -->
+    <div class="tab-panel" id="tab-repos">
+      <div class="endpoint-group">
+        <div class="endpoint-group-title">Repositories</div>
+        <div class="endpoint">
+          <div class="endpoint-badges"><span class="badge badge-get">GET</span><span class="badge badge-lock">auth</span></div>
+          <div class="endpoint-path">/api/repositories</div>
+          <div class="endpoint-desc">List all configured repositories.</div>
+        </div>
+        <div class="endpoint">
+          <div class="endpoint-badges"><span class="badge badge-post">POST</span><span class="badge badge-lock">auth</span></div>
+          <div class="endpoint-path">/api/repositories</div>
+          <div class="endpoint-desc">Create a new repository. Returns the generated webhook token and secret.</div>
+        </div>
+        <div class="endpoint">
+          <div class="endpoint-badges"><span class="badge badge-get">GET</span><span class="badge badge-lock">auth</span></div>
+          <div class="endpoint-path">/api/repositories/{id}</div>
+          <div class="endpoint-desc">Get a single repository by ID.</div>
+        </div>
+        <div class="endpoint">
+          <div class="endpoint-badges"><span class="badge badge-put">PUT</span><span class="badge badge-lock">auth</span></div>
+          <div class="endpoint-path">/api/repositories/{id}</div>
+          <div class="endpoint-desc">Update fields on an existing repository (partial update).</div>
+        </div>
+        <div class="endpoint">
+          <div class="endpoint-badges"><span class="badge badge-del">DELETE</span><span class="badge badge-lock">auth</span></div>
+          <div class="endpoint-path">/api/repositories/{id}</div>
+          <div class="endpoint-desc">Delete a repository permanently.</div>
+        </div>
+        <div class="endpoint">
+          <div class="endpoint-badges"><span class="badge badge-post">POST</span><span class="badge badge-lock">auth</span></div>
+          <div class="endpoint-path">/api/repositories/{id}/test</div>
+          <div class="endpoint-desc">Send a test Discord embed using the repository's current template.</div>
+        </div>
+        <div class="endpoint">
+          <div class="endpoint-badges"><span class="badge badge-post">POST</span><span class="badge badge-lock">auth</span></div>
+          <div class="endpoint-path">/api/repositories/{id}/regenerate-token</div>
+          <div class="endpoint-desc">Generate a new webhook token, invalidating the old URL.</div>
+        </div>
+        <div class="endpoint">
+          <div class="endpoint-badges"><span class="badge badge-get">GET</span><span class="badge badge-lock">auth</span></div>
+          <div class="endpoint-path">/api/repositories/export</div>
+          <div class="endpoint-desc">Export all repositories as a JSON file.</div>
+        </div>
+        <div class="endpoint">
+          <div class="endpoint-badges"><span class="badge badge-post">POST</span><span class="badge badge-lock">auth</span></div>
+          <div class="endpoint-path">/api/repositories/import</div>
+          <div class="endpoint-desc">Import up to 100 repositories from a JSON payload.</div>
+        </div>
+        <div class="endpoint">
+          <div class="endpoint-badges"><span class="badge badge-post">POST</span><span class="badge badge-lock">auth</span></div>
+          <div class="endpoint-path">/api/repositories/bulk</div>
+          <div class="endpoint-desc">Activate, deactivate, or delete up to 500 repositories in one request.</div>
+        </div>
+      </div>
+      <div class="endpoint-group">
+        <div class="endpoint-group-title">Settings</div>
+        <div class="endpoint">
+          <div class="endpoint-badges"><span class="badge badge-get">GET</span><span class="badge badge-lock">auth</span></div>
+          <div class="endpoint-path">/api/settings</div>
+          <div class="endpoint-desc">List all visible settings (hidden keys like JWT secret are excluded).</div>
+        </div>
+        <div class="endpoint">
+          <div class="endpoint-badges"><span class="badge badge-put">PUT</span><span class="badge badge-lock">auth</span></div>
+          <div class="endpoint-path">/api/settings</div>
+          <div class="endpoint-desc">Update one or more settings. In-memory cache is refreshed immediately.</div>
+        </div>
+      </div>
+      <div class="endpoint-group">
+        <div class="endpoint-group-title">Incoming Webhooks</div>
+        <div class="endpoint">
+          <div class="endpoint-badges"><span class="badge badge-post">POST</span><span class="badge badge-pub">public</span></div>
+          <div class="endpoint-path">/webhook/{token}</div>
+          <div class="endpoint-desc">Receive a push event from GitHub or GitLab. Validates signature, filters branches, and dispatches to Discord.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOGS -->
+    <div class="tab-panel" id="tab-logs">
+      <div class="endpoint-group">
+        <div class="endpoint-group-title">Webhook Logs</div>
+        <div class="endpoint">
+          <div class="endpoint-badges"><span class="badge badge-get">GET</span><span class="badge badge-lock">auth</span></div>
+          <div class="endpoint-path">/api/logs</div>
+          <div class="endpoint-desc">Paginated log list. Filter by <code>status</code>, <code>platform</code>, <code>repository_id</code>. Max 200 per page.</div>
+        </div>
+        <div class="endpoint">
+          <div class="endpoint-badges"><span class="badge badge-post">POST</span><span class="badge badge-lock">auth</span></div>
+          <div class="endpoint-path">/api/logs/{id}/retry</div>
+          <div class="endpoint-desc">Replay a specific log entry — re-sends the original payload to Discord.</div>
+        </div>
+        <div class="endpoint">
+          <div class="endpoint-badges"><span class="badge badge-get">GET</span><span class="badge badge-pub">public</span></div>
+          <div class="endpoint-path">/api/logs/stream</div>
+          <div class="endpoint-desc">Server-Sent Events stream. Requires a <code>?token=…</code> one-time token from <code>POST /api/auth/stream-token</code>.</div>
+        </div>
+      </div>
+      <div class="endpoint-group">
+        <div class="endpoint-group-title">Statistics</div>
+        <div class="endpoint">
+          <div class="endpoint-badges"><span class="badge badge-get">GET</span><span class="badge badge-lock">auth</span></div>
+          <div class="endpoint-path">/api/stats</div>
+          <div class="endpoint-desc">Webhook delivery counts for the last 24 hours and 7 days, success rate, and top repositories.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADMIN -->
+    <div class="tab-panel" id="tab-admin">
+      <div class="endpoint-group">
+        <div class="endpoint-group-title">User Management <span class="badge badge-admin">admin only</span></div>
+        <div class="endpoint">
+          <div class="endpoint-badges"><span class="badge badge-get">GET</span></div>
+          <div class="endpoint-path">/api/users</div>
+          <div class="endpoint-desc">List all user accounts.</div>
+        </div>
+        <div class="endpoint">
+          <div class="endpoint-badges"><span class="badge badge-post">POST</span></div>
+          <div class="endpoint-path">/api/users</div>
+          <div class="endpoint-desc">Create a new user. Password is Argon2-hashed.</div>
+        </div>
+        <div class="endpoint">
+          <div class="endpoint-badges"><span class="badge badge-put">PUT</span></div>
+          <div class="endpoint-path">/api/users/{id}</div>
+          <div class="endpoint-desc">Update username, email, password, or role.</div>
+        </div>
+        <div class="endpoint">
+          <div class="endpoint-badges"><span class="badge badge-del">DELETE</span></div>
+          <div class="endpoint-path">/api/users/{id}</div>
+          <div class="endpoint-desc">Delete a user. Cannot delete your own account.</div>
+        </div>
+        <div class="endpoint">
+          <div class="endpoint-badges"><span class="badge badge-put">PUT</span><span class="badge badge-lock">auth</span></div>
+          <div class="endpoint-path">/api/users/me/password</div>
+          <div class="endpoint-desc">Change your own password. Requires current password verification.</div>
+        </div>
+      </div>
+      <div class="endpoint-group">
+        <div class="endpoint-group-title">Audit Log <span class="badge badge-admin">admin only</span></div>
+        <div class="endpoint">
+          <div class="endpoint-badges"><span class="badge badge-get">GET</span></div>
+          <div class="endpoint-path">/api/audit</div>
+          <div class="endpoint-desc">Last 500 audit log entries (user, action, target, timestamp).</div>
+        </div>
+      </div>
+      <div class="endpoint-group">
+        <div class="endpoint-group-title">Retry Queue <span class="badge badge-admin">admin only</span></div>
+        <div class="endpoint">
+          <div class="endpoint-badges"><span class="badge badge-get">GET</span></div>
+          <div class="endpoint-path">/api/queue</div>
+          <div class="endpoint-desc">List queued Discord deliveries with pending and failed counts.</div>
+        </div>
+        <div class="endpoint">
+          <div class="endpoint-badges"><span class="badge badge-post">POST</span></div>
+          <div class="endpoint-path">/api/queue/{id}/retry</div>
+          <div class="endpoint-desc">Manually trigger an immediate retry for a specific queue item.</div>
+        </div>
+        <div class="endpoint">
+          <div class="endpoint-badges"><span class="badge badge-del">DELETE</span></div>
+          <div class="endpoint-path">/api/queue/{id}</div>
+          <div class="endpoint-desc">Remove a queue item permanently.</div>
+        </div>
+        <div class="endpoint">
+          <div class="endpoint-badges"><span class="badge badge-post">POST</span></div>
+          <div class="endpoint-path">/api/queue/purge-failed</div>
+          <div class="endpoint-desc">Delete all queue items with status <code>failed</code>.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SYSTEM -->
+    <div class="tab-panel" id="tab-system">
+      <div class="endpoint-group">
+        <div class="endpoint-group-title">System Endpoints <span class="badge badge-pub">public</span></div>
+        <div class="endpoint">
+          <div class="endpoint-badges"><span class="badge badge-get">GET</span></div>
+          <div class="endpoint-path">/health</div>
+          <div class="endpoint-desc">Database connectivity check. Returns <code>{"status":"healthy","db":"ok"}</code> or HTTP 503.</div>
+        </div>
+        <div class="endpoint">
+          <div class="endpoint-badges"><span class="badge badge-get">GET</span></div>
+          <div class="endpoint-path">/metrics</div>
+          <div class="endpoint-desc">Prometheus text format metrics. Scrape with any compatible collector.</div>
+        </div>
+        <div class="endpoint">
+          <div class="endpoint-badges"><span class="badge badge-get">GET</span></div>
+          <div class="endpoint-path">/api/docs</div>
+          <div class="endpoint-desc">Interactive Swagger UI — browse and test all endpoints in the browser.</div>
+        </div>
+        <div class="endpoint">
+          <div class="endpoint-badges"><span class="badge badge-get">GET</span></div>
+          <div class="endpoint-path">/api/docs/openapi.json</div>
+          <div class="endpoint-desc">Raw OpenAPI 3.0 specification as JSON.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ──────────── CONFIG ──────────── -->
+<section id="config">
+  <div class="section-label">Configuration</div>
+  <h2><a href="#config" class="anchor">Environment Variables</a></h2>
+  <p class="lead">All settings have sensible defaults. Copy <code>.env.example</code> to <code>.env</code> and adjust as needed.</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Variable</th><th>Default</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>PORT</code></td><td><code>8080</code></td><td>HTTP port the server binds to</td></tr>
+        <tr><td><code>DATABASE_URL</code></td><td><code>sqlite:data/app.db</code></td><td>SQLite database path. Created automatically if absent.</td></tr>
+        <tr><td><code>FRONTEND_DIR</code></td><td><code>frontend/dist</code></td><td>Path to pre-built frontend assets</td></tr>
+        <tr><td><code>HOST_PORT</code></td><td><code>8080</code></td><td>Docker Compose host-side port</td></tr>
+        <tr><td><code>RUST_LOG</code></td><td><code>hookshot=info,tower_http=info</code></td><td>Tracing log level filter</td></tr>
+        <tr><td><code>LOG_FORMAT</code></td><td><em>plain</em></td><td>Set to <code>json</code> for structured JSON output (Loki, Datadog, CloudWatch)</td></tr>
+        <tr><td><code>CORS_ORIGIN</code></td><td><em>disabled</em></td><td>Allowed CORS origin, e.g. <code>https://app.example.com</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout mt-2">
+    <strong>Settings persisted in the database</strong> (managed via the admin UI or <code>PUT /api/settings</code>):
+    <br><br>
+    <code>log_retention_days</code> (default 90) · <code>audit_log_retention_days</code> (default 30)
+  </div>
+
+  <div class="code-label mt-2">.env.example</div>
+  <pre><code>PORT=8080
+DATABASE_URL=sqlite:data/app.db
+FRONTEND_DIR=frontend/dist
+HOST_PORT=8080
+LOG_FORMAT=json
+CORS_ORIGIN=</code></pre>
+</section>
+
+<div class="divider"></div>
+
+<!-- ──────────── MONITORING ──────────── -->
+<section id="monitoring">
+  <div class="section-label">Observability</div>
+  <h2><a href="#monitoring" class="anchor">Monitoring</a></h2>
+  <p class="lead">Hookshot exposes Prometheus metrics and a structured JSON log stream — ready to plug into your existing observability stack.</p>
+
+  <h3>Prometheus Metrics</h3>
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="metric-name">hookshot_webhooks_total</div>
+      <div class="metric-desc">Total webhook log entries ever recorded</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-name">hookshot_webhooks_by_status</div>
+      <div class="metric-desc">Entries split by <code>success</code>, <code>failed</code>, <code>skipped</code></div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-name">hookshot_queue_depth</div>
+      <div class="metric-desc">Current retry queue depth (<code>pending</code> / <code>failed</code>)</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-name">hookshot_repositories</div>
+      <div class="metric-desc">Repository count (<code>total</code> / <code>active</code>)</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-name">hookshot_users_total</div>
+      <div class="metric-desc">Total user accounts</div>
+    </div>
+  </div>
+
+  <div class="code-label mt-2">prometheus.yml</div>
+  <pre><code>scrape_configs:
+  - job_name: hookshot
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['hookshot:8080']</code></pre>
+
+  <div class="mt-2">
+    <h3>Health Check</h3>
+    <pre><code>curl https://your-domain.com/health
+# {"status":"healthy","db":"ok"}
+
+# Returns HTTP 503 + {"status":"unhealthy","db":"…"} on DB failure</code></pre>
+  </div>
+
+  <div class="mt-2">
+    <h3>Structured JSON Logging</h3>
+    <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:0.8rem;">Set <code>LOG_FORMAT=json</code> to emit newline-delimited JSON — compatible with Loki, Datadog, CloudWatch Logs, etc.</p>
+    <pre><code>{"timestamp":"2025-05-25T14:00:00Z","level":"INFO","target":"hookshot","message":"Webhook processed","fields":{"status":"success"}}</code></pre>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ──────────── SECURITY ──────────── -->
+<section id="security">
+  <div class="section-label">Security Model</div>
+  <h2><a href="#security" class="anchor">Security</a></h2>
+  <p class="lead">Hookshot is designed with defence-in-depth for self-hosted production use.</p>
+
+  <div class="feature-grid">
+    <div class="feature-card">
+      <div class="feature-icon">🔑</div>
+      <h3>Passwords</h3>
+      <p>Argon2id hashing with per-user random salts. Minimum 8 characters enforced. Forced change on first login.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔢</div>
+      <h3>TOTP 2FA + Backup Codes</h3>
+      <p>RFC 6238 TOTP. 8 backup codes are generated at enable time, SHA-256 hashed, and consumed on use. One code per login attempt.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🚫</div>
+      <h3>Rate Limiting</h3>
+      <p>Login and TOTP: 20 attempts / 15 min per IP, persisted in SQLite. Webhooks: 120 / 60 s per IP in-memory. All return proper <code>Retry-After</code> and <code>X-RateLimit-*</code> headers.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔏</div>
+      <h3>Signature Verification</h3>
+      <p>GitHub webhooks: HMAC-SHA256 via <code>x-hub-signature-256</code>. GitLab: shared secret via <code>x-gitlab-token</code>. Both use constant-time byte comparison.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🎫</div>
+      <h3>JWT Sessions</h3>
+      <p>HS256 JWTs with a randomly generated secret stored in the database. Logout blacklists the JTI. Per-session revocation supported. Expired blacklist entries are purged daily.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🛡️</div>
+      <h3>Security Headers</h3>
+      <p><code>X-Content-Type-Options: nosniff</code>, <code>X-Frame-Options: DENY</code>, <code>X-XSS-Protection: 1; mode=block</code>, <code>Referrer-Policy: strict-origin-when-cross-origin</code>.</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ──────────── TECH STACK ──────────── -->
+<section id="stack">
+  <div class="section-label">Under the hood</div>
+  <h2><a href="#stack" class="anchor">Tech Stack</a></h2>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Layer</th><th>Technology</th><th>Why</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Backend</td><td>Rust · Axum 0.8 · Tokio</td><td>Memory safety, zero-cost async, minimal binary size</td></tr>
+        <tr><td>Database</td><td>SQLite via SQLx 0.9 (bundled)</td><td>Zero-dependency embedded DB; compile-time query verification</td></tr>
+        <tr><td>Frontend</td><td>React 19 · TypeScript · Vite 6 · Tailwind</td><td>Fast HMR dev loop, type-safe UI</td></tr>
+        <tr><td>Auth</td><td>jsonwebtoken 10 · Argon2 · totp-rs 5.7</td><td>Industry-standard JWT, memory-hard password hashing, RFC 6238 TOTP</td></tr>
+        <tr><td>Real-time</td><td>Server-Sent Events (SSE)</td><td>Simple, firewall-friendly, no WebSocket upgrade</td></tr>
+        <tr><td>API Docs</td><td>utoipa 5 · Swagger UI 9</td><td>Compile-time OpenAPI 3.0 generation from Rust annotations</td></tr>
+        <tr><td>Monitoring</td><td>Prometheus text format · tracing-subscriber</td><td>Zero extra crates, plugs into any existing stack</td></tr>
+        <tr><td>Container</td><td>Alpine Linux · ~20 MB image</td><td>Tiny attack surface, fast cold start</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ──────────── FOOTER ──────────── -->
+<footer>
+  <p>
+    Built with ❤️ in Rust ·
+    <a href="https://github.com/your-username/hookshot">GitHub</a> ·
+    <a href="https://github.com/your-username/hookshot/blob/main/LICENSE">MIT License</a> ·
+    <a href="#api">API Reference</a>
+  </p>
+</footer>
+
+<script>
+  function switchTab(e, name) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    e.currentTarget.classList.add('active');
+    document.getElementById('tab-' + name).classList.add('active');
+  }
+</script>
+</body>
+</html>
