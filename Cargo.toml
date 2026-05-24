@@ -13,7 +13,7 @@ serde_json = "1"
 sqlx = { version = "0.9", features = ["runtime-tokio", "sqlite", "migrate"] }
 reqwest = { version = "0.13", default-features = false, features = ["json", "rustls", "webpki-roots"] }
 libsqlite3-sys = { version = "0.37", features = ["bundled"] }
-jsonwebtoken = "10"
+jsonwebtoken = { version = "10", features = ["rust_crypto"] }
 argon2 = "0.5"
 rand_core = { version = "0.6", features = ["getrandom"] }
 hmac = "0.13"
