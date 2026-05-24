@@ -10,7 +10,7 @@
 ![Rust](https://img.shields.io/badge/Rust-1.87-orange?logo=rust)
 ![Docker](https://img.shields.io/badge/Docker-Alpine-2496ED?logo=docker)
 
-[**Documentation →**](https://zaross.github.io/Hookshot/)
+[**Documentation →**](https://your-username.github.io/hookshot) · [**API Reference →**](https://your-domain.com/api/docs)
 
 </div>
 

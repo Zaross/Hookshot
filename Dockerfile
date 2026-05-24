@@ -10,7 +10,7 @@ RUN npm run build
 
 FROM rust:1-alpine AS rust-builder
 
-RUN apk add --no-cache musl-dev
+RUN apk add --no-cache musl-dev curl
 
 WORKDIR /app
 
