@@ -27,7 +27,7 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 dotenvy = "0.15"
 regex = "1"
-totp-rs = { version = "5.7.1", features = ["gen_secret", "otpauth"] }
+totp-rs = { version = "6.0.0", features = ["gen_secret", "otpauth"] }
 async-stream = "0.3"
 tokio-stream = { version = "0.1", features = ["sync"] }
 futures-core = "0.3"
